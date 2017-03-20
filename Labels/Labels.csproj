@@ -130,9 +130,11 @@
     <Content Include="Content\labels\userlabel.xml" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\DYMO.Label.Framework.2.0.2.js" />
-    <Content Include="Scripts\nametags.js" />
+    <Content Include="Scripts\nametags\images\ajax-loader.gif" />
+    <Content Include="Scripts\nametags\nametags.js" />
     <None Include="Properties\PublishProfiles\Production %28Apps%29.pubxml" />
     <None Include="Scripts\_references.js" />
+    <Content Include="Scripts\nametags\nametags.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

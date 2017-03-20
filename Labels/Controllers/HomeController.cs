@@ -1,5 +1,6 @@
 ﻿using Labels.Models;
 using System.Web.Mvc;
+using System.Configuration;
 
 namespace Labels.Controllers
 {
@@ -20,7 +21,8 @@ namespace Labels.Controllers
         [Route("exit")]
         public ActionResult ExitApplication()
         {
-            return Redirect("/sselonline");
+            string exitUrl = ConfigurationManager.AppSettings["ExitUrl"];
+            return Redirect(exitUrl);
         }
     }
 }

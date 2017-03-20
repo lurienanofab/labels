@@ -169,9 +169,14 @@ $.fn.nametags = function () {
         }
 
         var showPreview = function (file, labelData) {
+            var preview = $(".preview-panel[data-file='" + file + "'] .label-preview", $this);
+
+            preview.html($("<div/>", { "class": "loader" }));
+
             getLabel(file, labelData).done(function (label) {
-                label.renderAsync('<LabelRenderParams><ShadowColor Alpha="230" Red="128" Green="128" Blue="128"/></LabelRenderParams>').then(function (pngData) {
-                    $(".preview-panel[data-file='" + file + "'] .label-preview", $this).html($("<img/>", { "src": "data:image/png;base64," + pngData }));
+                var renderParams = dymo.label.framework.createLabelRenderParamsXml({ shadowColor: { alpha: 0, red: 170, green: 170, blue: 170 }, shadowDepth: 50 });
+                label.renderAsync(renderParams).then(function (pngData) {
+                    preview.html($("<img/>", { "src": "data:image/png;base64," + pngData }));
                 }).thenCatch(function (err) {
                     console.log(err);
                 });
