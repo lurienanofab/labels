@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "Name Tags";
+    ViewBag.ActivePage = "nametags";
+}
+
+<div class="nametags" data-apiurl="@Url.Content("~/api/")" data-labelurl="@Url.Content("~/Content/labels/")">
+    <div class="form-horizontal">
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" class="custom"> Custom Label
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="standard-label">
+            <div class="form-group">
+                <label class="control-label col-sm-2">User *</label>
+                <div class="col-sm-2">
+                    <select class="form-control users"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Manager *</label>
+                <div class="col-sm-2">
+                    <select class="form-control managers"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Organization</label>
+                <div class="col-sm-2">
+                    <select class="form-control orgs"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" class="staff"> Staff
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" class="intern"> Intern
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="custom-label" style="display: none;">
+            <div class="form-group">
+                <label class="control-label col-sm-2">Top</label>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control top-text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Bottom</label>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control bottom-text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <p class="form-control-static">
+                        <em class="text-muted">Press tab after changing text to update preview.</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="panel panel-default preview-panel" data-file="userlabel">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Name Tag Label</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="label-preview"></div>
+                </div>
+                <div class="panel-footer">
+                    <button type="button" class="btn btn-default print-label">Print Label</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="panel panel-default preview-panel" data-file="mini">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Mini Backside Label</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="label-preview"></div>
+                </div>
+                <div class="panel-footer">
+                    <button type="button" class="btn btn-default print-label">Print Label</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-inline">
+        <div class="form-group">
+            <label for="exampleInputName2">Printer:</label>
+            <select class="dymo-printers form-control" style="width: 300px;"></select>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/Scripts/DYMO.Label.Framework.2.0.2.js"></script>
+    <script src="~/Scripts/nametags.js"></script>
+    <script>
+        $(".nametags").nametags();
+    </script>
+}

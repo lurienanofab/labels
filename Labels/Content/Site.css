@@ -1,0 +1,15 @@
+﻿.preview-panel {
+    background-color: #ddd;
+}
+
+    .preview-panel .panel-body {
+        height: 370px;
+    }
+
+    .preview-panel .panel-footer {
+        text-align: center;
+    }
+
+    .preview-panel .label-preview {
+        text-align: center;
+    }
