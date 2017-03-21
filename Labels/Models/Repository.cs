@@ -32,7 +32,7 @@ namespace Labels.Models
             var activeLogs = DA.Current.Query<ActiveLog>().Where(x => x.TableName == "Client").ToList();
 
             var query = DA.Current.Query<ClientManager>()
-                .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
+                .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ManagerOrg.IsManager && x.ClientOrg.Client.ClientID == clientId)
                 .OrderBy(x => x.ManagerOrg.Client.LName).ThenBy(x => x.ManagerOrg.Client.FName);
 
             return query.Select(x => new UserItem()
