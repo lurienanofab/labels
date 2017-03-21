@@ -18,6 +18,12 @@ namespace Labels.Controllers
             return Repository.GetManagers(clientId);
         }
 
+        [Route("api/user/{clientId}/org")]
+        public IEnumerable<OrgItem> GetClientOrgs(int clientId)
+        {
+            return Repository.GetClientOrgs(clientId);
+        }
+
         [Route("api/user/{clientId}/manager/{managerId}/org")]
         public IEnumerable<OrgItem> GetManagerOrgs(int clientId, int managerId)
         {

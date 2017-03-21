@@ -32,7 +32,7 @@ namespace Labels.Models
             var activeLogs = DA.Current.Query<ActiveLog>().Where(x => x.TableName == "Client").ToList();
 
             var query = DA.Current.Query<ClientManager>()
-                .Where(x => x.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
+                .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
                 .OrderBy(x => x.ManagerOrg.Client.LName).ThenBy(x => x.ManagerOrg.Client.FName);
 
             return query.Select(x => new UserItem()
@@ -44,10 +44,22 @@ namespace Labels.Models
             });
         }
 
+        public static IEnumerable<OrgItem> GetClientOrgs(int clientId)
+        {
+            var query = DA.Current.Query<ClientOrg>().Where(x => x.Client.ClientID == clientId && x.Active);
+
+            return query.Select(x => new OrgItem()
+            {
+                OrgID = x.Org.OrgID,
+                OrgName = x.Org.OrgName,
+                Internal = IsInternalOrg(x.Org)
+            });
+        }
+
         public static IEnumerable<OrgItem> GetManagerOrgs(int clientId, int managerId)
         {
             var managers = DA.Current.Query<ClientManager>()
-                .Where(x => x.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
+                .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
                 .OrderBy(x => x.ManagerOrg.Client.LName).ThenBy(x => x.ManagerOrg.Client.FName)
                 .ToList();
 
