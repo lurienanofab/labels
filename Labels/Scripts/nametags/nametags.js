@@ -77,6 +77,11 @@ $.fn.nametags = function () {
 
         var labels = {};
 
+        var printParams = {
+            "mini": { twinTurboRoll: dymo.label.framework.TwinTurboRoll.Right },
+            "userlabel": { twinTurboRoll: dymo.label.framework.TwinTurboRoll.Left }
+        };
+
         var opts = $.extend({}, { "apiurl": "api/", "labelurl": "labels/" }, options, $this.data());
 
         // dymo sdk is required
@@ -329,16 +334,8 @@ $.fn.nametags = function () {
             var label = labels[file];
 
             if (label) {
-                var pp = null;
-
-                if (file == "mini")
-                    pp = { twinTurboRoll: dymo.label.framework.TwinTurboRoll.Right };
-                else
-                    pp = { twinTurboRoll: dymo.label.framework.TwinTurboRoll.Left };
-
-                var printParams = dymo.label.framework.createLabelWriterPrintParamsXml(pp);
-
-                label.printAsync(printer, printParams);
+                var pp = dymo.label.framework.createLabelWriterPrintParamsXml(printParams[file]);
+                label.printAsync(printer, pp);
             }
         }).on("show-custom-preview", function (e, top, bottom) {
             showCustomPreview(top, bottom);
