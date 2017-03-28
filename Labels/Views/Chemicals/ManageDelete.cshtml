@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Delete";
+    ViewBag.ActivePage = "chemicals";
+    ViewBag.ActiveTab = "manage";
+
+    string errmsg = ViewBag.ErrorMessage;
+    string deletedChemicalName = ViewBag.DeletedChemicalName;
+
+    string room = ViewBag.Room;
+
+    bool isStaff = ViewBag.IsStaff;
+}
+
+@Html.Partial("_ChemicalsTabMenu")
+
+<div style="margin-top: 20px;">
+    @if (!string.IsNullOrEmpty(errmsg))
+    {
+        <div class="alert alert-danger" role="alert">
+            @errmsg
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            @deletedChemicalName has been deleted.
+        </div>
+    }
+
+    @Html.ActionLink("Print", "Index", new { room }, new { @class = "btn btn-primary" })
+    @Html.ActionLink(isStaff ? "Manage" : "Requests", "Manage", null, new { @class = "btn btn-default" })
+</div>

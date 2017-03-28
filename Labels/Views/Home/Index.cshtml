@@ -1,8 +1,15 @@
 ﻿@{
     ViewBag.Title = "Labels";
     ViewBag.ActivePage = "index";
+
+    string room = null;
+    if (Session["room"] != null)
+    {
+        room = Session["room"].ToString();
+    }
 }
 
 <div class="list-group">
-    @Html.ActionLink("Name Tags", "NameTags", "Home", null, new { @class = "list-group-item" })
+    @Html.ActionLink("Name Tags", "Index", "NameTags", null, new { @class = "list-group-item" })
+    @Html.ActionLink("Chemical Labels", "Index", "Chemicals", new { room }, new { @class = "list-group-item" })
 </div>

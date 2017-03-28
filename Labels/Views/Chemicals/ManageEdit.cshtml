@@ -1,0 +1,175 @@
+﻿@using Labels.Models;
+@using LNF.Cache;
+
+@model ManageEditModel
+@{
+    bool isStaff = CacheManager.Current.CurrentUser.IsStaff();
+
+    ViewBag.Title = isStaff ? "Manage" : "Request";
+    ViewBag.ActivePage = "chemicals";
+    ViewBag.ActiveTab = "manage";
+
+    string room = ViewBag.Room;
+    object routeValues;
+    if (string.IsNullOrEmpty(room))
+    {
+        routeValues = null;
+    }
+    else
+    {
+        routeValues = new { room };
+    }
+
+    string title;
+    object attr;
+
+    if (isStaff)
+    {
+        title = Model.PrivateChemicalID == 0 ? "Add New Chemical" : "Edit Chemical: " + Model.ChemicalName;
+        attr = new { @class = "form-control" };
+    }
+    else
+    {
+        title = "Request New Chemical";
+        attr = new { @class = "form-control", @disabled = "disabled" };
+    }
+
+    string errmsg = ViewBag.ErrorMessage;
+
+    string saveText;
+    if (Model.PrivateChemicalID == 0)
+    {
+        saveText = isStaff ? "Save" : "Request";
+    }
+    else
+    {
+        saveText = Model.PrivateChemical.ApprovedByClientID == -1 ? "Approve" : "Update";
+    }
+}
+
+@Html.Partial("_ChemicalsTabMenu")
+
+<div style="margin-top: 20px;">
+    <h3>@title</h3>
+
+    @if (!string.IsNullOrEmpty(errmsg))
+    {
+        <div class="alert alert-danger" role="alert">
+            @Html.Raw(errmsg)
+        </div>
+    }
+
+    @using (Html.BeginForm("ManageEditUpdate", "Chemicals", new { PrivateChemicalID = Model.PrivateChemicalID }, FormMethod.Post, new { @class = "form-horizontal" }))
+    {
+        <div class="form-group">
+            @Html.LabelFor(x => x.ChemicalName, "Chemical", new { @class = "control-label col-sm-2" })
+            <div class="col-sm-4">
+                @Html.TextBoxFor(x => x.ChemicalName, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Location</label>
+            <div class="col-sm-4">
+                <div class="form-control-static">
+                    @Html.HiddenFor(x => x.SelectedLocations, new { @class = "selected-locations" })
+                    <div>
+                        <strong>Clean Room</strong>
+                        <div style="padding-left: 20px; padding-top: 5px;">
+                            @foreach (LocationItem loc in Model.GetLocations("cleanroom"))
+                            {
+                                <label style="margin-right: 10px; font-weight: normal;">
+                                    <input type="checkbox" data-label-location-id="@loc.LabelLocationID" class="location" />
+                                    @loc.LocationName
+                                </label>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <strong>ROBIN</strong>
+                        <div style="padding-left: 20px; padding-top: 5px;">
+                            @foreach (LocationItem loc in Model.GetLocations("robin"))
+                            {
+                                <label style="margin-right: 10px; font-weight: normal;">
+                                    <input type="checkbox" data-label-location-id="@loc.LabelLocationID" class="location" />
+                                    @loc.LocationName
+                                </label>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(x => x.RequestedByClientID, "Requested By", new { @class = "control-label col-sm-2" })
+            <div class="col-sm-4">
+                @Html.DropDownListFor(x => x.RequestedByClientID, Model.Users.Select(x => new SelectListItem() { Text = string.Format("{0}, {1}", x.LName, x.FName), Value = x.ClientID.ToString() }), attr)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(x => x.MsdsUrl, "MSDS Link", new { @class = "control-label col-sm-2" })
+            <div class="col-sm-4">
+                @Html.TextBoxFor(x => x.MsdsUrl, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(x => x.Notes, new { @class = "control-label col-sm-2" })
+            <div class="col-sm-4">
+                @Html.TextAreaFor(x => x.Notes, 3, 4, new { @class = "form-control" })
+            </div>
+        </div>
+        if (isStaff)
+        {
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(x => x.Restricted) Restricted
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(x => x.Shared) Shared
+                        </label>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">@saveText</button>
+                @Html.ActionLink("Cancel", "Manage", null, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    }
+</div>
+
+@section scripts{
+    <script>
+        function setLocations() {
+            $(".location").prop("checked", false);
+
+            var value = $(".selected-locations").val();
+
+            if (value) {
+                var id = value.split(",");
+                for (i = 0; i < id.length; i++) {
+                    $(".location[data-label-location-id='" + id[i] + "']").prop("checked", true);
+                }
+            }
+        }
+
+        $(".location").on("change", function (e) {
+            var value = $.map($(".location:checked"), function (chk, index) {
+                return $(chk).data("labelLocationId");
+            }).join(",");
+
+            $(".selected-locations").val(value);
+        });
+
+        setLocations();
+    </script>
+}

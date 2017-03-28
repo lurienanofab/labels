@@ -1,8 +1,9 @@
 ﻿using Labels.Models;
+using System;
 using System.Collections.Generic;
 using System.Web.Http;
 
-namespace Labels.Controllers
+namespace Labels.Controllers.Api
 {
     public class UserController : ApiController
     {

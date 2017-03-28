@@ -1,0 +1,77 @@
+﻿@using Labels.Models;
+@using LNF.CommonTools;
+
+@model ManageModel
+@{
+    ViewBag.Title = "Manage";
+    ViewBag.ActivePage = "chemicals";
+    ViewBag.ActiveTab = "manage";
+
+    var pending = Model.Chemicals.Where(x => x.ApprovedByClientID == -1).OrderBy(x => x.ChemicalName).ToList();
+    var approved = Model.Chemicals.Where(x => x.ApprovedByClientID != -1).OrderBy(x => x.ChemicalName).ToList();
+
+    bool isStaff = ViewBag.IsStaff;
+}
+
+@section styles{
+    <style>
+        .chemical .panel-body {
+            padding: 2px;
+        }
+
+        .chemical .form-group {
+            margin-bottom: 0;
+        }
+
+        .chemical .footer {
+            margin-left: 10px;
+            margin-right: 10px;
+            margin-bottom: 5px;
+            padding-top: 5px;
+            border-top: solid 1px #ddd;
+        }
+
+        .chemical.unapproved {
+            background-color: #ffffdd;
+        }
+    </style>
+}
+
+@Html.Partial("_ChemicalsTabMenu")
+
+<div style="margin-top: 20px;">
+    @Html.ActionLink(string.Format("{0} New Chemical", isStaff ? "Add" : "Request"), "ManageEdit", null, new { @class = "btn btn-primary" })
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-sm-6">
+            <h4>Pending Approval</h4>
+            @if (pending.Count > 0)
+            {
+                foreach (var pc in pending)
+                {
+                    Html.RenderPartial("_ChemicalPanel", pc);
+                }
+            }
+            else
+            {
+                <p class="text-muted">
+                    <em>No pending chemicals were found.</em>
+                </p>
+            }
+
+            <h4>Approved Chemicals</h4>
+            @if (approved.Count > 0)
+            {
+                foreach (var pc in approved)
+                {
+                    Html.RenderPartial("_ChemicalPanel", pc);
+                }
+            }
+            else
+            {
+                <p class="text-muted">
+                    <em>No approved chemicals were found.</em>
+                </p>
+            }
+        </div>
+    </div>
+</div>

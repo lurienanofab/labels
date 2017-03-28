@@ -1,0 +1,23 @@
+﻿@using Labels.Models;
+@using LNF.Cache;
+
+@{
+    string room = ViewBag.Room;
+    string activeTab = ViewBag.ActiveTab;
+
+    bool isStaff = CacheManager.Current.CurrentUser.IsStaff();
+
+    var tabItems = new List<MenuItem>();
+    tabItems.Add(new MenuItem() { Text = "Print", Url = Url.Action("Index", "Chemicals", new { room }), Active = activeTab == "print", Visible = true });
+    tabItems.Add(new MenuItem() { Text = isStaff ? "Manage" : "Requests", Url = Url.Action("Manage", "Chemicals"), Active = activeTab == "manage", Visible = true });
+    tabItems.Add(new MenuItem() { Text = "Report", Url = Url.Action("Report", "Chemicals"), Active = activeTab == "report", Visible = true });
+}
+
+<ul class="nav nav-tabs">
+    @foreach (var item in tabItems)
+    {
+        <li role="presentation" class="@(item.Active ? "active" : string.Empty)">
+            <a href="@item.Url">@item.Text</a>
+        </li>
+    }
+</ul>

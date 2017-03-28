@@ -7,6 +7,8 @@ namespace Labels.Models
         public int ClientID { get; set; }
         public string LName { get; set; }
         public string FName { get; set; }
-        public DateTime StartDate { get; set; }
+        public string Phone { get; set; }
+        public string Email { get; set; }
+        public DateTime? StartDate { get; set; }
     }
 }

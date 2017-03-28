@@ -84,23 +84,6 @@ $.fn.nametags = function () {
 
         var opts = $.extend({}, { "apiurl": "api/", "labelurl": "labels/" }, options, $this.data());
 
-        // dymo sdk is required
-        if (!dymo) {
-            alert('DYMO Label Framework not found!');
-            return
-        }
-
-        dymo.label.framework.getPrintersAsync().then(function (printers) {
-            if (printers.length > 0) {
-                $(".dymo-printers", $this).html($.map(printers, function (item, index) {
-                    return $("<option/>").text(item.name);
-                }));
-            } else {
-                $(".dymo-printers", $this).html($("<option/>").text("No printers found.")).prop("disabled", true);
-            }
-        });
-
-
         var getDisplayName = function (user) {
             return user.LName + ", " + user.FName;
         }
@@ -112,11 +95,11 @@ $.fn.nametags = function () {
                 "url": opts.apiurl + "user",
                 "method": "GET"
             }).done(function (data, textStatus, xhr) {
-                $(".users", $this)
-                    .html($("<option/>", { "value": "0" }).text("-- Select --"))
-                    .append($.map(data, function (item, index) {
-                        return $("<option/>", { "value": item.ClientID, "data-lname": item.LName, "data-fname": item.FName, "data-start": moment(item.StartDate).format("MMM YYYY") }).text(getDisplayName(item));
-                    }));
+                $(".users", $this).html(
+                    $("<option/>", { "value": "0" }).text("-- Select --")
+                ).append($.map(data, function (item, index) {
+                    return $("<option/>", { "value": item.ClientID, "data-lname": item.LName, "data-fname": item.FName, "data-phone": item.Phone, "data-email": item.Email, "data-start": moment(item.StartDate).format("MMM YYYY") }).text(getDisplayName(item));
+                }));
 
                 def.resolve();
             }).fail(def.reject);
@@ -240,7 +223,35 @@ $.fn.nametags = function () {
             $(".orgs", $this).html("");
         }
 
-        loadUsers();
+        var loadPrinters = function () {
+            var def = $.Deferred();
+
+            // dymo sdk is required
+            if (!dymo) {
+                alert('DYMO Label Framework not found!');
+                def.reject();
+            } else {
+
+                dymo.label.framework.getPrintersAsync().then(function (printers) {
+                    if (printers.length > 0) {
+                        $(".dymo-printers", $this).html($.map(printers, function (item, index) {
+                            return $("<option/>").text(item.name);
+                        }));
+
+                        def.resolve();
+                    } else {
+                        $(".dymo-printers", $this).html($("<option/>").text("No printers found.")).prop("disabled", true);
+                        def.reject();
+                    }
+                }).thenCatch(def.reject);
+            }
+
+            return def.promise();
+        }
+
+        loadPrinters().done(function () {
+            loadUsers();
+        });
 
         $this.on("change", ".users", function (e) {
             var clientId = $(this).val();

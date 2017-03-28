@@ -1,0 +1,80 @@
+﻿@using Labels.Models;
+@using LNF.CommonTools;
+@using LNF.Repository.Inventory;
+
+@model PrivateChemical
+@{ 
+    string className = "panel panel-default chemical";
+
+    if (Model.ApprovedByClientID == -1)
+    {
+        className += " unapproved";
+    }
+
+    bool isStaff = ViewBag.IsStaff;
+}
+
+<div class="@className">
+    <div class="panel-body">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-sm-2">Chemical</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.ChemicalName</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Requested By</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.RequestedByClient.DisplayName</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Approved By</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Repository.GetApprovedBy(Model)</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Approved Date</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Repository.GetApprovedDate(Model)</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">MSDS Link</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">
+                        @if (!string.IsNullOrEmpty(Model.MsdsUrl))
+                        {
+                            <a href="@Model.MsdsUrl">@Model.MsdsUrl.Clip(70, "...")</a>
+                        }
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Notes</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Notes</p>
+                </div>
+            </div>
+        </div>
+        @if (isStaff)
+        {
+            <div class="footer">
+                @if (Model.ApprovedByClientID <= 0)
+                {
+                    @Html.ActionLink("Approve", "ManageEdit", "Chemicals", new { Model.PrivateChemicalID }, null)
+                    <span>|</span>
+                    @Html.ActionLink("Reject", "ManageDelete", "Chemicals", new { Model.PrivateChemicalID }, null)
+                }
+                else
+                {
+                    @Html.ActionLink("Edit", "ManageEdit", "Chemicals", new { Model.PrivateChemicalID }, null)
+                    <span>|</span>
+                    @Html.ActionLink("Delete", "ManageDelete", "Chemicals", new { Model.PrivateChemicalID }, null)
+                }
+            </div>
+        }
+    </div>
+</div>

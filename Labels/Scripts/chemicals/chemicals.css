@@ -1,0 +1,30 @@
+﻿.preview-panel {
+    background-color: #e7e7e7;
+}
+
+    .preview-panel .panel-body {
+        height: 250px;
+    }
+
+    .preview-panel .panel-footer {
+        text-align: center;
+    }
+
+    .preview-panel .label-preview {
+        text-align: center;
+    }
+
+    .preview-panel .loader {
+        background: url(images/ajax-loader.gif) no-repeat center;
+        width: 100%;
+        height: 30px;
+    }
+
+.label-terms {
+    padding: 5px;
+    border: solid 1px #A0A0A0;
+    border-radius: 4px;
+    background-color: #FFFFFF;
+    font-size: 10pt;
+    overflow: scroll;
+}

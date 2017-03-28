@@ -1,13 +1,26 @@
 ﻿@using Labels.Models;
-@using LNF;
 @using LNF.Cache;
 
 @{
     string displayName = CacheManager.Current.CurrentUser.DisplayName;
     string activePage = ViewBag.ActivePage;
     var menuItems = new List<MenuItem>();
-    menuItems.Add(new MenuItem() { Text = "Home", Url = Url.Action("Index", "Home"), Active = activePage == "index", Visible = true });
-    menuItems.Add(new MenuItem() { Text = "Name Tags", Url = Url.Action("NameTags", "Home"), Active = activePage == "nametags", Visible = true });
+
+    string room = null;
+    if (Session["room"] != null)
+    {
+        room = Session["room"].ToString();
+    }
+
+    menuItems.Add(new MenuItem() { Text = "Name Tags", Url = Url.Action("Index", "NameTags"), Active = activePage == "nametags", Visible = true });
+    menuItems.Add(new MenuItem() { Text = "Chemicals", Url = Url.Action("Index", "Chemicals", new { room }), Active = activePage == "chemicals", Visible = true });
+
+    bool hideMenu = false;
+
+    if (Session["HideMenu"] != null)
+    {
+        hideMenu = (bool)Session["HideMenu"];
+    }
 }
 
 <!DOCTYPE html>
@@ -34,48 +47,58 @@
     <![endif]-->
 </head>
 <body>
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink("Labels", "Index", "Home", null, new { @class = "navbar-brand" })
-            </div>
+    @if (!hideMenu)
+    {
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    @Html.ActionLink("Labels", "Index", "Home", null, new { @class = "navbar-brand" })
+                </div>
 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    @foreach (var item in menuItems.Where(x => x.Visible))
-                    {
-                        <li class="@(item.Active ? "active" : string.Empty)">
-                            <a href="@item.Url">
-                                @item.Text
-                                @if (item.Active)
-                                {
-                                    <span class="sr-only">(current)</span>
-                                }
-                            </a>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        @foreach (var item in menuItems.Where(x => x.Visible))
+                        {
+                            <li class="@(item.Active ? "active" : string.Empty)">
+                                <a href="@item.Url">
+                                    @item.Text
+                                    @if (item.Active)
+                                    {
+                                        <span class="sr-only">(current)</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@displayName <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Exit Application", "ExitApplication", "Home", null, new { @target = "_top" })</li>
+                            </ul>
                         </li>
-                    }
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@displayName <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("Exit Application", "ExitApplication", "Home", null, new { @target = "_top" })</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div><!-- /.navbar-collapse -->
-        </div><!-- /.container-fluid -->
-    </nav>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
+        </nav>
+    }
 
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin-top: 20px;">
+        @if (hideMenu)
+        {
+            <div class="pull-right">
+                <span>@displayName</span>
+                [@Html.ActionLink("Log Out", "ExitApplication", "Home", null, new { @target = "_top" })]
+            </div>
+        }
         @RenderBody()
     </div>
 

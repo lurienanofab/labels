@@ -1,0 +1,139 @@
+﻿@using Labels.Models;
+
+@model ChemicalsModel
+@{
+    ViewBag.Title = "Chemicals";
+    ViewBag.ActivePage = "chemicals";
+    ViewBag.ActiveTab = "print";
+}
+
+@section styles{
+    <link rel="stylesheet" href="~/Scripts/chemicals/chemicals.css" />
+}
+
+@Html.Partial("_ChemicalsTabMenu")
+
+<div class="chemicals" data-apiurl="@Model.ApiUrl" data-labelurl="@Model.LabelUrl" data-room="@Model.Room" data-client-id="@Model.ClientID" data-staff="@Model.IsStaff.ToString().ToLower()" data-dispose="@Model.DisposeDate.ToString("o")" data-start="@Model.StartDate.ToString("o")" style="margin-top: 20px;">
+    @if (string.IsNullOrEmpty(Model.Room) || !string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert" style="margin-bottom: 20px;">
+                @Model.ErrorMessage
+            </div>
+        }
+
+        <div class="list-group">
+            @Html.ActionLink("Clean Room", "Index", "Chemicals", new { Room = "cleanroom" }, new { @class = "list-group-item" })
+            @Html.ActionLink("ROBIN", "Index", "Chemicals", new { Room = "robin" }, new { @class = "list-group-item" })
+        </div>
+    }
+    else
+    {
+        <h4><a href="@Url.Content("~/chemicals")">@Model.GetRoomName()</a></h4>
+
+        <div class="form-horizontal">
+            @if (Model.IsStaff)
+            {
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="store-stock"> Store Stock
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="form-group">
+                <label class="control-label col-md-2">Chemical</label>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <select class="form-control approved-chemicals"></select>
+                        <span class="input-group-addon" id="basic-addon2">@Html.ActionLink("Add", "ManageEdit", "Chemicals", null, null)</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <p class="form-control-static">
+                        <em class="text-muted">* Restricted Chemical</em>
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Location</label>
+                <div class="col-md-4">
+                    <select class="form-control locations"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Display Name</label>
+                <div class="col-md-4">
+                    <select class="form-control users"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2 phone-label">Contact Phone</label>
+                <div class="col-md-3">
+                    <input type="text" class="form-control contact-phone" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Contact Email</label>
+                <div class="col-md-3">
+                    <input type="text" class="form-control contact-email" />
+                </div>
+            </div>
+            <div class="form-group restricted-message" style="display: none;">
+                <div class="col-md-offset-2 col-md-5">
+                    <p class="form-control-static label-terms">
+                        By printing this label you @Model.DisplayName agree that you have permission from Lurie Nanofabrication Facility (LNF) staff to bring this chemical into any part of the Lurie Nanofabrication Facility, and that you have received all necessary safety training and proper instruction on the use of this chemical. You agree that if you answer untruthfully you may be expelled from the lab or face other disciplinary action. You also understand that an email will be sent to LNF staff indicating that you have agreed to these terms when the "Print" button is clicked.
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Printer</label>
+                <div class="col-md-3">
+                    <select class="dymo-printers form-control"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Large Label</label>
+                <div class="col-md-10">
+                    <button type="button" class="btn btn-default preview" data-file="private-chem-large">Preview</button>
+                    <button type="button" class="btn btn-default print" data-file="private-chem-large">Print</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">Small Label</label>
+                <div class="col-md-10">
+                    <button type="button" class="btn btn-default preview" data-file="private-chem-small">Preview</button>
+                    <button type="button" class="btn btn-default print" data-file="private-chem-small">Print</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="alert alert-warning" role="alert">
+                    Be sure to @Html.ActionLink("log out", "ExitApplication", "Home") when you are done.
+                </div>
+                <div class="panel panel-default preview-panel">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Chemical Label Preview</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="label-preview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section scripts{
+    <script src="~/Scripts/DYMO.Label.Framework.2.0.2.js"></script>
+    <script src="~/Scripts/chemicals/chemicals.js"></script>
+    <script>
+        var chemicals = $(".chemicals").chemicals();
+    </script>
+}

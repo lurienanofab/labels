@@ -1,0 +1,125 @@
+﻿@using Labels.Models;
+
+@model ReportModel
+@{
+    ViewBag.Title = "Report";
+    ViewBag.ActivePage = "chemicals";
+    ViewBag.ActiveTab = "report";
+}
+
+@section styles{
+    <link href="//ssel-apps.eecs.umich.edu/static/lib/datatables/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+@Html.Partial("_ChemicalsTabMenu")
+
+<div style="margin-top: 20px;">
+    <div class="form-inline">
+        <div class="form-group">
+            <label>Date Range:</label>
+            <span>from</span>
+            @Html.TextBoxFor(x => x.StartDate, "{0:MM/dd/yyyy}", new { @class = "form-control start-date", @style = "width: 150px;" })
+            <span>to</span>
+            @Html.TextBoxFor(x => x.EndDate, "{0:MM/dd/yyyy}", new { @class = "form-control end-date", @style = "width: 150px;" })
+        </div>
+        <button type="button" class="btn btn-default run-report">Run Report</button>
+    </div>
+
+    <div class="panel panel-default" style="margin-top: 20px;">
+        <div class="panel-heading">
+            <h3 class="panel-title">Print Log Report</h3>
+        </div>
+        <div class="panel-body">
+            <div class="export-links" style="margin-bottom: 20px;">
+                <span>Export:</span>
+                @Html.ActionLink("CSV", "ReportExport", new { format = "csv", sd = Model.StartDate.ToString("yyyy-MM-dd"), ed = Model.EndDate.ToString("yyyy-MM-dd") })
+                <span>|</span>
+                @Html.ActionLink("XML", "ReportExport", new { format = "xml", sd = Model.StartDate.ToString("yyyy-MM-dd"), ed = Model.EndDate.ToString("yyyy-MM-dd") })
+                <span>|</span>
+                @Html.ActionLink("JSON", "ReportExport", new { format = "json", sd = Model.StartDate.ToString("yyyy-MM-dd"), ed = Model.EndDate.ToString("yyyy-MM-dd") })
+            </div>
+            <table class="table table-striped report">
+                <thead>
+                    <tr>
+                        <th>Print Date</th>
+                        <th>Client</th>
+                        <th>Chemical</th>
+                        <th>Restricted</th>
+                        <th>Location</th>
+                        <th>Room</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/datatables/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Scripts/datatables/plugins/datetime-moment.js"></script>
+    <script src="~/Scripts/urijs/URI.min.js"></script>
+    <script src="~/Scripts/urijs/jquery.URI.min.js"></script>
+
+    <script>
+        var dateFormat = "M/D/YYYY h:mm:ss A";
+
+        $.fn.dataTable.moment(dateFormat);
+
+        var getDateRange = function () {
+            return {
+                "start": moment(new Date($(".start-date").val())),
+                "end": moment(new Date($(".end-date").val()))
+            };
+        }
+
+        var rep = $(".report").DataTable({
+            "ajax": function (data, callback, settings) {
+                var range = getDateRange();
+
+                $.ajax({
+                    "url": '@Url.Content("~/api/chemical/report")' + "?sd=" + range.start.format("YYYY-MM-DD") + "&ed=" + range.end.format("YYYY-MM-DD")
+                }).done(function (result) {
+                    var reportData = { "data": [] };
+
+                    $.each(result, function (index, value) {
+                        console.log(value);
+                        reportData.data.push([
+                            moment(new Date(value.PrintDateTime)).format(dateFormat),
+                            value.DisplayName,
+                            value.ChemicalName,
+                            value.Restricted ? "True" : "False",
+                            value.LocationName,
+                            value.RoomName
+                        ]);
+                    });
+
+                    callback(reportData);
+                });
+            },
+            "columnDefs": [
+                { "type": "date", "targets": [0] }
+            ],
+            "order": [[0, "asc"]]
+        });
+
+        var validate = function (range) {
+            return range.start.isValid() && range.end.isValid() && range.start.isBefore(range.end);
+        }
+
+        $(".run-report").on("click", function (e) {
+            var range = getDateRange();
+            if (validate(range)) {
+                $(".export-links").css("visibility", "hidden");
+                rep.ajax.reload(function () {
+                    $(".export-links a").each(function () {
+                        var uri = $(this).uri();
+                        uri.search({ sd: range.start.format("YYYY-MM-DD"), ed: range.end.format("YYYY-MM-DD") });
+                    });
+                    $(".export-links").css("visibility", "visible");
+                });
+            }
+        });
+    </script>
+}
