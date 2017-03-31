@@ -338,11 +338,10 @@
             return errors === 0;
         }
 
-        loadPrinters().done(function () {
-            loadChemicals().done(function () {
-                loadUsers().done(function () {
-                    selectCurrentUser();
-                });
+        loadChemicals().done(function () {
+            loadUsers().done(function () {
+                selectCurrentUser();
+                loadPrinters();
             });
         });
 

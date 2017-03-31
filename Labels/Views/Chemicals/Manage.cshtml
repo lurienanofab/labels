@@ -41,6 +41,13 @@
 
 <div style="margin-top: 20px;">
     @Html.ActionLink(string.Format("{0} New Chemical", isStaff ? "Add" : "Request"), "ManageEdit", null, new { @class = "btn btn-primary" })
+
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-sm-6">
+            <input type="text" class="form-control search" placeholder="Search by chemical name..." />
+        </div>
+    </div>
+
     <div class="row" style="margin-top: 20px;">
         <div class="col-sm-6">
             <h4>Pending Approval</h4>
@@ -75,3 +82,28 @@
         </div>
     </div>
 </div>
+
+@section scripts{
+    <script>
+        // makes the :contains selector case insensitive
+        // https://css-tricks.com/snippets/jquery/make-jquery-contains-case-insensitive/
+        $.expr[":"].contains = $.expr.createPseudo(function (arg) {
+            return function (elem) {
+                return $(elem).text().toLowerCase().indexOf(arg.toLowerCase()) >= 0;
+            };
+        });
+
+        var panels = $(".chemical.panel");
+
+        $(".search").on("keyup", function (e) {
+            var search = $(this).val().toLowerCase();
+            if (search) {
+                panels.hide();
+                $(".search-key:contains(" + search + ")").closest(".chemical.panel").show();
+                //$(".search-key:contains(" + search + ")").closest(".chemical.panel").show();
+            } else {
+                panels.show();
+            }
+        });
+    </script>
+}

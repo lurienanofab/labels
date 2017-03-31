@@ -49,8 +49,7 @@ namespace Labels.Controllers
         {
             CacheManager.Current.CheckSession();
             bool isStaff = CacheManager.Current.CurrentUser.IsStaff();
-            int clientId = isStaff ? 0 : CacheManager.Current.ClientID;
-            model.Chemicals = Repository.GetPrivateChemicals(clientId);
+            model.Chemicals = Repository.GetPrivateChemicals();
             ViewBag.Room = GetRoomFromSession();
             ViewBag.IsStaff = isStaff;
             return View(model);

@@ -200,12 +200,9 @@ namespace Labels.Models
             return result;
         }
 
-        public static IList<PrivateChemical> GetPrivateChemicals(int clientId)
+        public static IList<PrivateChemical> GetPrivateChemicals()
         {
-            if (clientId == 0)
-                return DA.Current.Query<PrivateChemical>().Where(x => !x.Deleted).ToList();
-            else
-                return DA.Current.Query<PrivateChemical>().Where(x => !x.Deleted && x.RequestedByClient.ClientID == CacheManager.Current.ClientID).ToList();
+            return DA.Current.Query<PrivateChemical>().Where(x => !x.Deleted).ToList();
         }
 
         public static void AddPrivateChemical(ManageEditModel model, int clientId)
