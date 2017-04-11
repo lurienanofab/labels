@@ -22,15 +22,7 @@ namespace Labels.Models
                 .OrderBy(x => x.LName)
                 .ThenBy(x => x.FName);
 
-            return query.Select(x => new UserItem()
-            {
-                ClientID = x.ClientID,
-                LName = x.LName,
-                FName = x.FName,
-                Phone = x.Phone,
-                Email = x.Email,
-                StartDate = GetStartDate(x.ClientID, activeLogs)
-            });
+            return query.ToList().Select(x => CreateUserItem(x, activeLogs));
         }
 
         public static bool AddLogEntry(LogEntryModel model, string ip)
@@ -87,15 +79,10 @@ namespace Labels.Models
 
             var query = DA.Current.Query<ClientManager>()
                 .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ManagerOrg.IsManager && x.ClientOrg.Client.ClientID == clientId)
-                .OrderBy(x => x.ManagerOrg.Client.LName).ThenBy(x => x.ManagerOrg.Client.FName);
+                .OrderBy(x => x.ManagerOrg.Client.LName)
+                .ThenBy(x => x.ManagerOrg.Client.FName);
 
-            return query.Select(x => new UserItem()
-            {
-                ClientID = x.ManagerOrg.Client.ClientID,
-                LName = x.ManagerOrg.Client.LName,
-                FName = x.ManagerOrg.Client.FName,
-                StartDate = GetStartDate(x.ManagerOrg.Client.ClientID, activeLogs)
-            });
+            return query.ToList().Select(x => CreateUserItem(x.ManagerOrg.Client, activeLogs));
         }
 
         public static IEnumerable<OrgItem> GetClientOrgs(int clientId)
@@ -162,7 +149,14 @@ namespace Labels.Models
 
         private static DateTime? GetStartDate(int clientId, IList<ActiveLog> activeLogs)
         {
-            return activeLogs.Where(x => x.Record == clientId).Min(x => (DateTime?)x.EnableDate);
+            var result = activeLogs.Where(x => x.Record == clientId).Min(x => (DateTime?)x.EnableDate);
+
+            if (result == null)
+            {
+                //throw new InvalidOperationException(string.Format("Null start date, ClientID = {0}", clientId));
+            }
+
+            return result;
         }
 
         public static IEnumerable<ChemicalItem> GetChemicalItems(string slug)
@@ -365,6 +359,40 @@ namespace Labels.Models
                 LocationName = x.ChemicalLocation.LabelLocation.LocationName,
                 RoomName = RoomUtility.Rooms[x.ChemicalLocation.LabelLocation.LabelRoom.Slug]
             });
+        }
+
+        private static UserItem CreateUserItem(ClientInfo client, IList<ActiveLog> activeLogs)
+        {
+            var start = GetStartDate(client.ClientID, activeLogs);
+
+            var result = new UserItem()
+            {
+                ClientID = client.ClientID,
+                LName = client.LName,
+                FName = client.FName,
+                Phone = client.Phone,
+                Email = client.Email,
+                StartDate = start
+            };
+
+            return result;
+        }
+
+        private static UserItem CreateUserItem(Client client, IList<ActiveLog> activeLogs)
+        {
+            var start = GetStartDate(client.ClientID, activeLogs);
+
+            var result = new UserItem()
+            {
+                ClientID = client.ClientID,
+                LName = client.LName,
+                FName = client.FName,
+                Phone = client.PrimaryPhone(),
+                Email = client.PrimaryEmail(),
+                StartDate = start
+            };
+
+            return result;
         }
     }
 }
