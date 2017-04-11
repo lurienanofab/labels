@@ -120,6 +120,11 @@ $.fn.nametags = function () {
                         return $("<option/>", { "value": item.ClientID, "data-lname": item.LName, "data-fname": item.FName, "data-start": moment(item.StartDate).format("MMM YYYY") }).text(getDisplayName(item));
                     }));
 
+                if ($(".managers", $this).find("option").length > 1) {
+                    // this means there is at least one manager
+                    $(".managers", $this).find("option:eq(1)").prop("selected", true);
+                }
+
                 $(".orgs", $this).html("");
 
                 def.resolve();
@@ -189,18 +194,20 @@ $.fn.nametags = function () {
         }
 
         var showPreview = function (file, labelData) {
-            var preview = $(".preview-panel[data-file='" + file + "'] .label-preview", $this);
+            if (dymo.label.framework.checkEnvironment().isWebServicePresent) {
+                var preview = $(".preview-panel[data-file='" + file + "'] .label-preview", $this);
 
-            preview.html($("<div/>", { "class": "loader" }));
+                preview.html($("<div/>", { "class": "loader" }));
 
-            getLabel(file, labelData).done(function (label) {
-                var renderParams = dymo.label.framework.createLabelRenderParamsXml({ shadowColor: { alpha: 0, red: 170, green: 170, blue: 170 }, shadowDepth: 50 });
-                label.renderAsync(renderParams).then(function (pngData) {
-                    preview.html($("<img/>", { "src": "data:image/png;base64," + pngData }));
-                }).thenCatch(function (err) {
-                    console.log(err);
+                getLabel(file, labelData).done(function (label) {
+                    var renderParams = dymo.label.framework.createLabelRenderParamsXml({ shadowColor: { alpha: 0, red: 170, green: 170, blue: 170 }, shadowDepth: 50 });
+                    label.renderAsync(renderParams).then(function (pngData) {
+                        preview.html($("<img/>", { "src": "data:image/png;base64," + pngData }));
+                    }).thenCatch(function (err) {
+                        console.log(err);
+                    });
                 });
-            });
+            }
         }
 
         var showCustomPreview = function (top, bottom) {
@@ -231,7 +238,6 @@ $.fn.nametags = function () {
                 alert('DYMO Label Framework not found!');
                 def.reject();
             } else {
-
                 dymo.label.framework.getPrintersAsync().then(function (printers) {
                     if (printers.length > 0) {
                         $(".dymo-printers", $this).html($.map(printers, function (item, index) {
@@ -249,8 +255,8 @@ $.fn.nametags = function () {
             return def.promise();
         }
 
-        loadPrinters().done(function () {
-            loadUsers();
+        loadUsers().done(function () {
+            loadPrinters();
         });
 
         $this.on("change", ".users", function (e) {
@@ -258,7 +264,24 @@ $.fn.nametags = function () {
 
             if (clientId > 0) {
                 loadManagers(clientId).done(function () {
-                    loadClientOrgs(clientId).done(function () {
+                    // need to select the correct org
+                    var managerId = $(".managers", $this).val();
+
+                    (function () {
+                        var def = $.Deferred();
+
+                        if (managerId > 0) {
+                            loadManagerOrgs(clientId, managerId).done(function () {
+                                def.resolve();
+                            });
+                        } else {
+                            loadClientOrgs(clientId).done(function () {
+                                def.resolve();
+                            });
+                        }
+
+                        return def.promise();
+                    })().done(function () {
                         var labelData = LabelData.create();
                         $this.trigger("show-preview", labelData)
                     });
