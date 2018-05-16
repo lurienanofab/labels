@@ -1,11 +1,11 @@
-﻿using Microsoft.Owin;
+﻿using LNF;
+using LNF.Impl.DependencyInjection.Web;
+using LNF.Web;
+using Microsoft.Owin;
 using Owin;
+using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
-using LNF.Impl;
-using System.Web.Http;
-using System.Net.Http;
-
 
 [assembly: OwinStartup(typeof(Labels.Startup))]
 
@@ -15,6 +15,8 @@ namespace Labels
     {
         public void Configuration(IAppBuilder app)
         {
+            ServiceProvider.Current = IOC.Resolver.GetInstance<ServiceProvider>();
+
             app.UseDataAccess();
 
             AreaRegistration.RegisterAllAreas();

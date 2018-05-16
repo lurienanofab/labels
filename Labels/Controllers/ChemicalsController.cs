@@ -153,9 +153,11 @@ namespace Labels.Controllers
                 sd = ed.Value.AddDays(-7);
             }
 
-            var model = new ReportModel();
-            model.StartDate = sd.Value;
-            model.EndDate = ed.Value;
+            var model = new ReportModel
+            {
+                StartDate = sd.Value,
+                EndDate = ed.Value
+            };
 
             ViewBag.Room = GetRoomFromSession();
 

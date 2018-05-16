@@ -8,11 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using LNF.Data;
 
 namespace Labels.Models
 {
     public static class Repository
     {
+        public static IClientManager ClientManager => DA.Use<IClientManager>();
+
         public static IEnumerable<UserItem> GetActiveUsers()
         {
             var activeLogs = DA.Current.Query<ActiveLog>().Where(x => x.TableName == "Client").ToList();
@@ -46,12 +49,12 @@ namespace Labels.Models
             {
                 var printedBy = model.GetPrintedBy();
 
-                var sendResult = Providers.Email.SendMessage(new SendMessageArgs()
+                ServiceProvider.Current.Email.SendMessage(new SendMessageArgs()
                 {
                     Caller = "Labels.Models.Repository.AddLogEntry",
                     ClientID = printedBy.ClientID,
                     DisplayName = printedBy.DisplayName,
-                    From = printedBy.PrimaryEmail(),
+                    From = ClientManager.PrimaryEmail(printedBy),
                     To = new[] { ConfigurationManager.AppSettings["AdminEmail"] },
                     Subject = "Label for restricted chemical printed by user",
                     Body = "<h2>A label for a restricted chemical was printed.</h2>"
@@ -67,7 +70,7 @@ namespace Labels.Models
                     IsHtml = true
                 });
 
-                return sendResult.Success;
+                return true;
             }
 
             return true;
@@ -77,7 +80,7 @@ namespace Labels.Models
         {
             var activeLogs = DA.Current.Query<ActiveLog>().Where(x => x.TableName == "Client").ToList();
 
-            var query = DA.Current.Query<ClientManager>()
+            var query = DA.Current.Query<LNF.Repository.Data.ClientManager>()
                 .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ManagerOrg.IsManager && x.ClientOrg.Client.ClientID == clientId)
                 .OrderBy(x => x.ManagerOrg.Client.LName)
                 .ThenBy(x => x.ManagerOrg.Client.FName);
@@ -109,12 +112,12 @@ namespace Labels.Models
             if (pc.ApprovedByClientID == -1)
             {
                 // reject
-                Providers.Email.SendMessage(new SendMessageArgs()
+                ServiceProvider.Current.Email.SendMessage(new SendMessageArgs()
                 {
                     Caller = "Labels.Models.Repository.DeletePrivateChemical",
                     ClientID = CacheManager.Current.ClientID,
                     From = ConfigurationManager.AppSettings["AdminEmail"],
-                    To = new[] { pc.RequestedByClient.PrimaryEmail() },
+                    To = new[] { ClientManager.PrimaryEmail(pc.RequestedByClient) },
                     Subject = "Private chemical request rejected",
                     Body = string.Format("Your request to add a new private chemical has been rejected{0}{0}Chemical name: {1}{0}{0}If you have any questions please reply to this email.", "<br>", pc.ChemicalName),
                     IsHtml = true
@@ -126,7 +129,7 @@ namespace Labels.Models
 
         public static IEnumerable<OrgItem> GetManagerOrgs(int clientId, int managerId)
         {
-            var managers = DA.Current.Query<ClientManager>()
+            var managers = DA.Current.Query<LNF.Repository.Data.ClientManager>()
                 .Where(x => x.Active && x.ManagerOrg.Active && x.ManagerOrg.Client.Active && x.ClientOrg.Client.ClientID == clientId)
                 .OrderBy(x => x.ManagerOrg.Client.LName).ThenBy(x => x.ManagerOrg.Client.FName)
                 .ToList();
@@ -232,12 +235,12 @@ namespace Labels.Models
                     pc.ApprovedByClientID = clientId;
                     pc.ApprovedDate = DateTime.Now;
 
-                    Providers.Email.SendMessage(new SendMessageArgs()
+                    ServiceProvider.Current.Email.SendMessage(new SendMessageArgs()
                     {
                         Caller = "Labels.Models.Repository.UpdatePrivateChemical",
                         ClientID = CacheManager.Current.ClientID,
                         From = ConfigurationManager.AppSettings["AdminEmail"],
-                        To = new[] { requestor.PrimaryEmail() },
+                        To = new[] { ClientManager.PrimaryEmail(requestor) },
                         Subject = "Private chemical request approved",
                         Body = string.Format("Your request to add a new private chemical has been approved{0}{0}Chemical name: {1}{0}{0}If you have any questions please reply to this email.", "<br>", model.ChemicalName),
                         IsHtml = true
@@ -277,17 +280,17 @@ namespace Labels.Models
 
             SaveLocations(pc, model.GetSelectedLocations());
 
-            var requestUrl = Providers.Context.Current.GetRequestUrl();
+            var requestUrl = ServiceProvider.Current.Context.GetRequestUrl();
             var host = requestUrl.GetLeftPart(UriPartial.Authority);
 
             string approveUrl = string.Format("{0}/labels/chemicals/manage/edit/{1}", host, pc.PrivateChemicalID);
             string rejectUrl = string.Format("{0}/labels/chemicals/manage/delete/{1}", host, pc.PrivateChemicalID);
 
-            Providers.Email.SendMessage(new SendMessageArgs()
+            ServiceProvider.Current.Email.SendMessage(new SendMessageArgs()
             {
                 Caller = "Labels.Models.Repository.RequestPrivateChemical",
                 ClientID = CacheManager.Current.ClientID,
-                From = requestor.PrimaryEmail(),
+                From = ClientManager.PrimaryEmail(requestor),
                 DisplayName = string.Format("{0} {1}", requestor.FName, requestor.LName),
                 To = new[] { ConfigurationManager.AppSettings["AdminEmail"] },
                 Subject = "New private chemical request",
@@ -382,13 +385,15 @@ namespace Labels.Models
         {
             var start = GetStartDate(client.ClientID, activeLogs);
 
+            var primary = ClientManager.PrimaryClientOrg(client);
+            
             var result = new UserItem()
             {
                 ClientID = client.ClientID,
                 LName = client.LName,
                 FName = client.FName,
-                Phone = client.PrimaryPhone(),
-                Email = client.PrimaryEmail(),
+                Phone = primary.Phone,
+                Email = primary.Email,
                 StartDate = start
             };
 
